@@ -77,25 +77,29 @@ FWH_EntrySpeed(3) = Corner_speed(3)/(2*pi()*(Tyre_r/1000))*60;
 RWH_EntrySpeed(3) = Corner_speed(3)/(2*pi()*(Tyre_r/1000))*60;
 
 %Calculations for straight 1
-Staight1_speed = zeros(Straight_calcpoints(1),1); %initilize the matrix
+Straight1_speed = zeros(Straight_calcpoints(1),1); %initilize the matrix
 Acceleration_T = zeros(Straight_calcpoints(1),1); %initilize the matrix
-Acceleration_E = zeros(Straight_calcpoints(1),1); %initilize the matrix
-Staight1_speed(1) = Corner_speed(1);
+Acceleration_P = zeros(Straight_calcpoints(1),1); %initilize the matrix
+Straight1_speed(1) = Corner_speed(1);
 
 for n=2:Straight_calcpoints(1)
     Wr = 1-Weight_dist_f; 
-    downforce = (ClA*(Staight1_speed(n-1)^2)*(1-Aero_balance))/(Mass*9.81);
+    downforce = (ClA*(Straight1_speed(n-1)^2)*(1-Aero_balance))/(Mass*9.81);
     weighttransferterm = Acceleration_T(n-1)*(CoG/Wheelbase);
-    Aerodrag = (CdA*(Staight1_speed(n-1)^2))/(Mass*9.81);
-    Acceleration_T(n) = mu_long*(Wr+downforce+weighttransferterm)-(Aerodrag); %this still needs to be cleaned up
-    F_tractive = 
-    Acceleration_E(n) = (F_tractive)-Aerodrg;
-    Staight1_speed(n) = sqrt((Staight1_speed(n-1)^2)+(2*Acceleration_T(n)*Delta_S)); %using SUVAT equation to calculate new speed for given acceleration value. 
+    Aerodrag = CdA*(Straight1_speed(n-1)^2);
+    Acceleration_T(n) = (mu_long*(Wr+downforce+weighttransferterm)-(Aerodrag))*9.81; %this still needs to be cleaned up should be one term and in m/s from the start.
+   
+    
+    %Calculating power limited acceleration
+    F_tractive = (Motor_torque_below_5k*(1/GearRatio)*(1/Final_Drive))/(Tyre_r/1000);
+    Acceleration_P(n) = (F_tractive-Aerodrag)/Mass; 
+    
+    Straight1_speed(n) = sqrt((Straight1_speed(n-1)^2)+(2*Acceleration_P(n)*Delta_S)); %using SUVAT equation to calculate new speed for given acceleration value. 
 end
 
-plot(Acceleration_T)
+plot(Straight1_speed)
 hold on
-plot(Staight1_speed)
+plot(Acceleration_P)
 
 
 
