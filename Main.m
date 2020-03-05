@@ -169,6 +169,7 @@ for n=2:Straight_calcpoints(3)
 end
 
 
+%Combining the speed profiles
 
 
 
