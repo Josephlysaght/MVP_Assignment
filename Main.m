@@ -33,17 +33,23 @@ Corner_anglerad(1) = degtorad(Corner_angle(1)); %convert deg to radians T1
 Corner_anglerad(2) = degtorad(Corner_angle(2)); %convert deg to radians T2
 Corner_anglerad(3) = degtorad(Corner_angle(3)); %convert deg to radians T3
 
-Corner_length(1) = Corner_anglerad(1)*Corner_radius(1); %calculates arc lenght
-Corner_length(2) = Corner_anglerad(2)*Corner_radius(2); %calculates arc lenght
-Corner_length(3) = Corner_anglerad(3)*Corner_radius(3); %calculates arc lenght
+%calculates corner lenght (Arc lenght)
+Corner_length(1) = Corner_anglerad(1)*Corner_radius(1);
+Corner_length(2) = Corner_anglerad(2)*Corner_radius(2);
+Corner_length(3) = Corner_anglerad(3)*Corner_radius(3);
 
-Track_length = Corner_length(1) + Corner_length(2) + Corner_length(3) + Straight_length(1) + Straight_length(2) + Straight_length(3); %Calculationg track length
-Calc_points = Track_length/Delta_S; %Determining how many calculation points are needed
+%calculating calculation points for straights
+Straight_calcpoints(1) = Straight_length(1)/Delta_S;
+Straight_calcpoints(1) = Straight_length(1)/Delta_S;
+Straight_calcpoints(1) = Straight_length(1)/Delta_S;
+
+%Calculationg overall track length
+Track_length = Corner_length(1) + Corner_length(2) + Corner_length(3) + Straight_length(1) + Straight_length(2) + Straight_length(3);
 
 %-----------------------------Start Simulation---------------------------%
 
 %Calculating steady state corner speed
-Corner_speed(1) = sqrt((mu_lat*Corner_radius(1)*Mass*9.81)/(Mass-(ClA*mu_lat)))
+Corner_speed(1) = sqrt((mu_lat*Corner_radius(1)*Mass*9.81)/(Mass-(ClA*mu_lat)));
 Corner_speed(2) = sqrt((mu_lat*Corner_radius(2)*Mass*9.81)/(Mass-(ClA*mu_lat))); 
 Corner_speed(3) = sqrt((mu_lat*Corner_radius(3)*Mass*9.81)/(Mass-(ClA*mu_lat))); 
 
@@ -63,9 +69,35 @@ Corner_lift(2) = ClA*Corner_speed(2)^2;
 Corner_lift(3) = ClA*Corner_speed(3)^2; 
 
 %Wheel speed out for turn (these values are RPM) 
-FWH_Speed(1) = Corner_speed(1)/(2*pi()*(Tyre_r/1000))*60;
-RWH_Speed(1) = Corner_speed(1)/(2*pi()*(Tyre_r/1000))*60;
-FWH_Speed(2) = Corner_speed(2)/(2*pi()*(Tyre_r/1000))*60;
-RWH_Speed(2) = Corner_speed(2)/(2*pi()*(Tyre_r/1000))*60;
-FWH_Speed(3) = Corner_speed(3)/(2*pi()*(Tyre_r/1000))*60;
-RWH_Speed(3) = Corner_speed(3)/(2*pi()*(Tyre_r/1000))*60;
+FWH_EntrySpeed(1) = Corner_speed(1)/(2*pi()*(Tyre_r/1000))*60;
+RWH_EntrySpeed(1) = Corner_speed(1)/(2*pi()*(Tyre_r/1000))*60;
+FWH_EntrySpeed(2) = Corner_speed(2)/(2*pi()*(Tyre_r/1000))*60;
+RWH_EntrySpeed(2) = Corner_speed(2)/(2*pi()*(Tyre_r/1000))*60;
+FWH_EntrySpeed(3) = Corner_speed(3)/(2*pi()*(Tyre_r/1000))*60;
+RWH_EntrySpeed(3) = Corner_speed(3)/(2*pi()*(Tyre_r/1000))*60;
+
+%Calculations for straight 1
+Corner1_speed(1) = Corner_speed(1);
+Acceleration(1) = 0;
+for n=2:Straight_calcpoints(1)+1
+    Acceleration(n) = mu_long((1-Weight_dist_f)+((ClA*Corner1_speed(n-1))*(1-Aero_balance)/(Mass*9.81))+(Acceleration(n-1)*CoG/Wheelbase))-((CdA*Corner_speed(n-1)^2)/(Mass*9.81)); %traction limited acceleration
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
