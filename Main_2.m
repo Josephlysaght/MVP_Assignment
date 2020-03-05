@@ -108,7 +108,28 @@ for n=2:Track.Calc_points
     end
 end
 
+%Because track is closed the last point has to equal the first point.
+Results.Speed(Track.Calc_points) = Results.Speed(2);
 
+%Calculate braking
+for n=Track.Calc_points-1:-1:1
+    if Track.Type(n) == 's'
+        
+        %calculate braking acceleration
+        StaticForce = Mass*9.81;
+        Aero_downforce = ClA*(Results.Speed(n+1)^2);
+        Aero_drag = CdA*(Results.Speed(n+1)^2);
+        Braking_A = (mu_long*(StaticForce+Aero_downforce) + Aero_drag)/Mass;
+        
+        %calculate braking speed
+        BSpeed = sqrt((Results.Speed(n+1)^2)+(2*Braking_A*Delta_S));
+        
+        %Decide if braking or previous speed wins
+        if BSpeed < Results.Speed(n)
+            Results.Speed(n) = BSpeed;
+        end
+    end
+end
 
 
 %Plot the outputs

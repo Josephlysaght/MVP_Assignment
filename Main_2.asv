@@ -73,20 +73,21 @@ end
 Results.Speed = zeros(Track.Calc_points,1);
 Results.Distance = zeros(Track.Calc_points,1);
 Results.Time = zeros(Track.Calc_points,1);
-
+Results.Accel = zeros(Track.Calc_points,1);
 
 %Calculate Cornering speeds and straight line acceleration
 for n=2:Track.Calc_points 
     if Track.Type(n) == 'c'
         %calculate corner speed 
         Results.Speed(n) = sqrt((mu_lat*Track.Radius(n)*Mass*9.81)/(Mass-(ClA*mu_lat)));
+        Results.Distance(n) = Results.Distance(n-1)+Delta_S;
     else 
         %calculate acceleration
         %Traction Limit
         Wr = (1-Weight_dist_f)*Mass*9.81;
-        Aero_downforce = ClA*(Results_Speed(n-1)^2)*(1-Aero_balance);
+        Aero_downforce = ClA*(Results.Speed(n-1)^2)*(1-Aero_balance);
         weight_transfer_term = ((Mass*Results.Accel(n-1)*(CoG/1000))/(Wheelbase/1000));
-        Aero_drag = CdA*(Results_Speed(n-1)^2);
+        Aero_drag = CdA*(Results.Speed(n-1)^2);
         TractionLimitedA = (mu_long*(Wr+Aero_downforce+weight_transfer_term) - Aero_drag)/Mass; 
         
         %Power Limit 
@@ -94,22 +95,47 @@ for n=2:Track.Calc_points
         PowerLimitedA = (F_tractive-Aero_drag)/Mass; 
         
         %Limit arbitration
-        if Straight1_A_T(n) > Straight1_A_P(n)Straight1_A_C(n) = Straight1_A_P(n);
+        if TractionLimitedA > PowerLimitedA
+            Results.Accel(n) = PowerLimitedA;
         else
-        Straight1_A_C(n) = Straight1_A_T(n);
-    end
+            Results.Accel(n) = TractionLimitedA;
+        end
         
         %Speed calculation
+        Results.Speed(n) = sqrt((Results.Speed(n-1)^2)+(2*Results.Accel(n)*Delta_S));
+        Results.Distance(n) = Results.Distance(n-1)+Delta_S;
         
     end
 end
 
-
+%Calculate braking
+for i=Track.Calc_points:-1:1
+    if Track.Type(n) == 's'
+        
+        %calculate braking acceleration
+        StaticForce = Mass*9.81;
+        Aero_downforce = ClA*(Results.Speed(n+1)^2);
+        Aero_drag = CdA*(Results.Speed(n+1)^2);
+        Braking_A = (mu_long*(StaticForce+Aero_downforce) + Aero_drag)/Mass;
+        
+        %calculate braking speed
+        BSpeed = sqrt((Results.Speed(n+1)^2)+(2*Braking_A*Delta_S));
+        
+        %Decide if braking or previous speed wins
+        if braking > speed 
+            %speed wins
+        else
+            %braking wins 
+        end %end if loop w
+    end
+end
 
 
 %Plot the outputs
-plot(Results.Speed)
-
+plot(Results.Distance,Results.Speed)
+title('Speed Trace Simulation Output')
+xlabel('Distance (m)') 
+ylabel('Speed (m/s)') 
 
 
 
