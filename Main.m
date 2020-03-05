@@ -40,8 +40,8 @@ Corner_length(3) = Corner_anglerad(3)*Corner_radius(3);
 
 %calculating calculation points for straights
 Straight_calcpoints(1) = (Straight_length(1)/Delta_S)+1;
-Straight_calcpoints(1) = (Straight_length(1)/Delta_S)+1;
-Straight_calcpoints(1) = (Straight_length(1)/Delta_S)+1;
+Straight_calcpoints(2) = (Straight_length(2)/Delta_S)+1;
+Straight_calcpoints(3) = (Straight_length(3)/Delta_S)+1;
 
 %Calculationg overall track length
 Track_length = Corner_length(1) + Corner_length(2) + Corner_length(3) + Straight_length(1) + Straight_length(2) + Straight_length(3);
@@ -78,32 +78,95 @@ RWH_EntrySpeed(3) = Corner_speed(3)/(2*pi()*(Tyre_r/1000))*60;
 
 %Calculations for straight 1
 Straight1_speed = zeros(Straight_calcpoints(1),1); %initilize the matrix
-Acceleration_T = zeros(Straight_calcpoints(1),1); %initilize the matrix
-Acceleration_P = zeros(Straight_calcpoints(1),1); %initilize the matrix
+Straight1_A_T = zeros(Straight_calcpoints(1),1); %initilize the matrix
+Straight1_A_P = zeros(Straight_calcpoints(1),1); %initilize the matrix
+Straight1_A_C = zeros(Straight_calcpoints(1),1); %initilize the matrix
 Straight1_speed(1) = Corner_speed(1);
 
 %Iteration loop for straight line speed
 for n=2:Straight_calcpoints(1)
+    
     %Calculate Traction Limit
-    Wr = 1-Weight_dist_f; 
+    Wr = (1-Weight_dist_f)*Mass*9.81;
     Aero_downforce = ClA*(Straight1_speed(n-1)^2)*(1-Aero_balance);
-    weight_transfer_term = Acceleration_T(n-1)*(CoG/Wheelbase);
+    weight_transfer_term = ((Mass*Straight1_A_T(n-1)*(CoG/1000))/(Wheelbase/1000));
     Aero_drag = CdA*(Straight1_speed(n-1)^2);
-    Acceleration_T(n) = mu_long*(Wr+Aero_downforce+weight_transfer_term)-(Aerodrag); %this still needs to be cleaned up should be one term and in m/s from the start.
+    Straight1_A_T(n) = (mu_long*(Wr+Aero_downforce+weight_transfer_term) - Aero_drag)/Mass; %F=ma
     
     %Calculating power limited acceleration
     F_tractive = (Motor_torque_below_5k*(1/GearRatio)*(1/Final_Drive))/(Tyre_r/1000);
-    Acceleration_P(n) = (F_tractive-Aerodrag)/Mass; %F=ma
+    Straight1_A_P(n) = (F_tractive-Aero_drag)/Mass; %F=ma
     
-    Straight1_speed(n) = sqrt((Straight1_speed(n-1)^2)+(2*Acceleration_P(n)*Delta_S)); %using SUVAT equation to calculate new speed for given acceleration value. 
+    if Straight1_A_T(n) > Straight1_A_P(n)
+        Straight1_A_C(n) = Straight1_A_P(n);
+    else
+        Straight1_A_C(n) = Straight1_A_T(n);
+    end 
+    
+    Straight1_speed(n) = sqrt((Straight1_speed(n-1)^2)+(2*Straight1_A_C(n)*Delta_S)); %using SUVAT equation to calculate new speed for given acceleration value. 
 end
 
-%plot(Straight1_speed)
-hold on
-plot(Acceleration_P)
-plot(Acceleration_T)
+
+%Calculations for straight 2
+Straight2_speed = zeros(Straight_calcpoints(2),1); %initilize the matrix
+Straight2_A_T = zeros(Straight_calcpoints(2),1); %initilize the matrix
+Straight2_A_P = zeros(Straight_calcpoints(2),1); %initilize the matrix
+Straight2_A_C = zeros(Straight_calcpoints(2),1); %initilize the matrix
+Straight2_speed(2) = Corner_speed(2);
+
+%Iteration loop for straight line speed
+for n=2:Straight_calcpoints(2)
+    
+    %Calculate Traction Limit
+    Wr = (1-Weight_dist_f)*Mass*9.81;
+    Aero_downforce = ClA*(Straight2_speed(n-1)^2)*(1-Aero_balance);
+    weight_transfer_term = ((Mass*Straight2_A_T(n-1)*(CoG/1000))/(Wheelbase/1000));
+    Aero_drag = CdA*(Straight2_speed(n-1)^2);
+    Straight2_A_T(n) = (mu_long*(Wr+Aero_downforce+weight_transfer_term) - Aero_drag)/Mass; %F=ma
+    
+    %Calculating power limited acceleration
+    F_tractive = (Motor_torque_below_5k*(1/GearRatio)*(1/Final_Drive))/(Tyre_r/1000);
+    Straight2_A_P(n) = (F_tractive-Aero_drag)/Mass; %F=ma
+    
+    if Straight2_A_T(n) > Straight2_A_P(n)
+        Straight2_A_C(n) = Straight2_A_P(n);
+    else
+        Straight2_A_C(n) = Straight2_A_T(n);
+    end 
+    
+    Straight2_speed(n) = sqrt((Straight2_speed(n-1)^2)+(2*Straight2_A_C(n)*Delta_S)); %using SUVAT equation to calculate new speed for given acceleration value. 
+end
 
 
+%Calculations for straight 3
+Straight3_speed = zeros(Straight_calcpoints(3),1); %initilize the matrix
+Straight3_A_T = zeros(Straight_calcpoints(3),1); %initilize the matrix
+Straight3_A_P = zeros(Straight_calcpoints(3),1); %initilize the matrix
+Straight3_A_C = zeros(Straight_calcpoints(3),1); %initilize the matrix
+Straight3_speed(3) = Corner_speed(3);
+
+%Iteration loop for straight line speed
+for n=2:Straight_calcpoints(3)
+    
+    %Calculate Traction Limit
+    Wr = (1-Weight_dist_f)*Mass*9.81;
+    Aero_downforce = ClA*(Straight3_speed(n-1)^2)*(1-Aero_balance);
+    weight_transfer_term = ((Mass*Straight3_A_T(n-1)*(CoG/1000))/(Wheelbase/1000));
+    Aero_drag = CdA*(Straight3_speed(n-1)^2);
+    Straight3_A_T(n) = (mu_long*(Wr+Aero_downforce+weight_transfer_term) - Aero_drag)/Mass; %F=ma
+    
+    %Calculating power limited acceleration
+    F_tractive = (Motor_torque_below_5k*(1/GearRatio)*(1/Final_Drive))/(Tyre_r/1000);
+    Straight3_A_P(n) = (F_tractive-Aero_drag)/Mass; %F=ma
+    
+    if Straight3_A_T(n) > Straight3_A_P(n)
+        Straight3_A_C(n) = Straight3_A_P(n);
+    else
+        Straight3_A_C(n) = Straight3_A_T(n);
+    end 
+    
+    Straight3_speed(n) = sqrt((Straight3_speed(n-1)^2)+(2*Straight3_A_C(n)*Delta_S)); %using SUVAT equation to calculate new speed for given acceleration value. 
+end
 
 
 
