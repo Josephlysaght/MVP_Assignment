@@ -1,7 +1,8 @@
 %%%%%%% Seppie's Laptime %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Load in template
 clear
-run('C:\MVP_Assignment\template.m');
+clc
+run('\\brookesf1\s59\17031059\GitHub\MVP_Assignment\template.m');
 
 %---------------------------------------------------Lets calculate the track parameters--------------------------------------------------------%
 %%Corner arc lenghts - arc lenght is the radius multiplied by the angle in radians 
@@ -75,11 +76,37 @@ Results.Distance = zeros(Track.Calc_points,1);
 Results.Time = zeros(Track.Calc_points,1);
 Results.Accel = zeros(Track.Calc_points,1);
 
+%Calculate corner speeds
+Results.C1Speed = sqrt((mu_lat*Corner_radius(1)*Mass*9.81)/(Mass-(ClA*mu_lat)));
+Results.C2Speed = sqrt((mu_lat*Corner_radius(2)*Mass*9.81)/(Mass-(ClA*mu_lat)));
+Results.C3Speed = sqrt((mu_lat*Corner_radius(3)*Mass*9.81)/(Mass-(ClA*mu_lat)));
+
+%Calculate Aerodynamic drag during corner
+Results.C1Drag = CdA*(Results.C1Speed^2);
+Results.C2Drag = CdA*(Results.C2Speed^2);
+Results.C3Drag = CdA*(Results.C3Speed^2);
+
+%Calculate Aerodynamic downforce during corner
+Results.C1Downforce = ClA*(Results.C1Speed^2);
+Results.C2Downforce = ClA*(Results.C2Speed^2);
+Results.C3Downforce = ClA*(Results.C3Speed^2);
+
+%Elapsed time in each turn 
+Results.C1Time = distance/speed
+Results.C2Time = distance/speed
+Results.C3Time = distance/speed
+
 %Calculate Cornering speeds and straight line acceleration
 for n=2:Track.Calc_points 
     if Track.Type(n) == 'c'
         %calculate corner speed 
-        Results.Speed(n) = sqrt((mu_lat*Track.Radius(n)*Mass*9.81)/(Mass-(ClA*mu_lat)));
+        if Track.Section(n) == 1
+            Results.Speed(n) = Results.C1Speed;
+        elseif Track.Section(n) == 2
+            Results.Speed(n) = Results.C2Speed;
+        else 
+            Results.Speed(n) = Results.C3Speed;
+        end
         Results.Distance(n) = Results.Distance(n-1)+Delta_S;
     else 
         %calculate acceleration
@@ -108,8 +135,11 @@ for n=2:Track.Calc_points
     end
 end
 
+%Because track is closed the last point has to equal the first point.
+Results.Speed(Track.Calc_points) = Results.Speed(2);
+
 %Calculate braking
-for i=Track.Calc_points:-1:1
+for n=Track.Calc_points-1:-1:1
     if Track.Type(n) == 's'
         
         %calculate braking acceleration
@@ -122,11 +152,9 @@ for i=Track.Calc_points:-1:1
         BSpeed = sqrt((Results.Speed(n+1)^2)+(2*Braking_A*Delta_S));
         
         %Decide if braking or previous speed wins
-        if braking > speed 
-            %speed wins
-        else
-            %braking wins 
-        end %end if loop w
+        if BSpeed < Results.Speed(n)
+            Results.Speed(n) = BSpeed;
+        end
     end
 end
 
@@ -137,8 +165,27 @@ title('Speed Trace Simulation Output')
 xlabel('Distance (m)') 
 ylabel('Speed (m/s)') 
 
-
-
+%------------------- Outputs ---------------------------------------
+%Corner Speeds
+fprintf('----- Corner Speeds ----- \n');
+fprintf('C1 - %5.2f m/s \n',Results.C1Speed);
+fprintf('C2 - %5.2f m/s \n',Results.C2Speed);
+fprintf('C3 - %5.2f m/s \n\n',Results.C3Speed);
+%Cornering Drag 
+fprintf('----- Aerodynamic Drag during corners----- \n');
+fprintf('C1 - %5.2f N \n',Results.C1Drag);
+fprintf('C2 - %5.2f N \n',Results.C2Drag);
+fprintf('C3 - %5.2f N \n\n',Results.C3Drag);
+%Cornering downforce
+fprintf('----- Aerodynamic Downforce during corners ----- \n');
+fprintf('C1 - %5.2f N \n',Results.C1Downforce);
+fprintf('C2 - %5.2f N \n',Results.C2Downforce);
+fprintf('C3 - %5.2f N \n\n',Results.C3Downforce);
+%Corner Distances
+fprintf('----- Distance traveled in each corner ----- \n');
+fprintf('C1 - %5.2f m \n',Corner_length(1));
+fprintf('C2 - %5.2f m \n',Corner_length(2));
+fprintf('C3 - %5.2f m \n\n',Corner_length(3));
 
 
 %Removing unnessesary varibles
