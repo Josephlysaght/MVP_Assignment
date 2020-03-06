@@ -17,6 +17,7 @@ Results.CTime = zeros(NumCorners,1);
 Corner_anglerad = zeros(NumCorners,1);
 Results.CDistance = zeros(NumCorners,1);
 Cpoints = zeros(NumCorners,1);
+Spoints = zeros(NumStraights,1);
 Results.CExitWheelSpeed = zeros(NumStraights,1);
 Results.CExitTorque = zeros(NumStraights,1);
 Results.CExitDownforceR = zeros(NumStraights,1);
@@ -112,6 +113,29 @@ for n=1:NumStraights
     Results.TimefirstStep(n) = (Delta_S/(Results.CSpeed(n)+0.5*Results.FirstA(n)))^(1/3);
 end
 
+%How many calculation points for each straight? 
+for n=1:NumStraights
+    Spoints(n) = round(Straight_length(n)/Delta_S);
+end
+
+%Initilize arrays for full straight lenght
+for n=1:NumStraights
+    StraightSpeed. = zeros(Spoints(n),1);
+end
+
+%Speed along the entire length of first straight (in 0.01m increments)
+for n=1:NumStraights
+    for i=1:Spoints(n)
+        A = 7.64;
+        %using SUVAT calculate the speed 
+        Results.StraightSpeed(n:i) = sqrt((Results.StraightSpeed(n:i-1))^2+2*Delta_S*A);
+    end
+end
+
+%Speed 200m from the beginning of the first straight
+
+%Time taken to complete the length of the straight
+
 %------------------- Outputs ---------------------------------------
 fprintf('----------------------- Part 1 - Cornering  ---------------------\n');
 %Corner Speeds
@@ -152,5 +176,5 @@ fprintf('Actual acceleration @0.01m after corner exit = %5.2f m/s\n',Results.Fir
 fprintf('Time taken to cover first 0-0.01m of straight = %2.4f s\n',Results.TimefirstStep(1));
 
 %Removing unnessesary varibles
-clear Corner_anglerad Cpoints
+clear Corner_anglerad Cpoints Spoints
 
